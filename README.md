@@ -100,10 +100,19 @@ Add Kubernetes APT Repository:
    apt-mark hold kubelet kubeadm kubectl
 ```
 ### 6. kubeadm init 
+If you want to use Cilium’s kube-proxy replacement, kubeadm needs to skip the kube-proxy deployment phase, so it has to be executed with the --skip-phases=addon/kube-proxy option:
+https://docs.cilium.io/en/latest/installation/k8s-install-kubeadm/#installation-using-kubeadm
 ```bash
-  kubeadm init
+  kubeadm init --skip-phases=addon/kube-proxy
   systemctl status kubelet
   journalctl -xeu kubelet
+
+  #in case of succes
+  mkdir -p $HOME/.kube
+  cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+  chown $(id -u):$(id -g) $HOME/.kube/config
+  kubectl get nodes --output=wide
+
 ```
 
 ### in case you got an error with kubeadm init rest
