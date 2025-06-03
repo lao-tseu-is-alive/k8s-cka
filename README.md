@@ -15,14 +15,16 @@ To set up the required tools on the cluster nodes, the following scripts are pro
 *	setup-kubetools.sh install the latest version of kubelet, kubeadm and kubectl
 *	setup-kubetool-previousversion.sh installs the previous major version of the kubelet, kubeadm and kubectl. Use this if you want to practice cluster upgrades
 
-## My perosnal notes  on install
+## My personal notes  on install
 
 i did my install on an Ubuntu 24.04 LTR
 
 ### 1. System Update and Upgrade
 
+```bash
   apt update && sudo apt upgrade -y
   reboot
+```
   
 ### 2. Disable Swap
 Kubernetes officially requires swap to be disabled for optimal performance and stability.
