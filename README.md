@@ -161,4 +161,9 @@ https://docs.cilium.io/en/latest/installation/k8s-install-kubeadm/#installation-
   kubectl get nodes --output=wide
 ```
 
+##### you should get something like this : 
+```bash
+  NAME                      STATUS   ROLES           AGE   VERSION   INTERNAL-IP    EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION       CONTAINER-RUNTIME
+  ovh-k8s-master-2025       Ready    control-plane   21m   v1.33.1   51.89.98.176   <none>        Ubuntu 22.04.5 LTS   5.15.0-141-generic   containerd://1.7.27
+```
 
