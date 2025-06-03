@@ -15,7 +15,7 @@ To set up the required tools on the cluster nodes, the following scripts are pro
 *	setup-kubetools.sh install the latest version of kubelet, kubeadm and kubectl
 *	setup-kubetool-previousversion.sh installs the previous major version of the kubelet, kubeadm and kubectl. Use this if you want to practice cluster upgrades
 
-## My personal notes  on install
+## My personal notes on install on Ubuntu 24.04 with cilium kube-proxy replacement
 
 i did my install on an Ubuntu 24.04 LTR
 
@@ -115,7 +115,7 @@ https://docs.cilium.io/en/latest/installation/k8s-install-kubeadm/#installation-
 
 ```
 
-### in case you got an error with kubeadm init rest
+### in case you got an error with kubeadm init reset all before trying again
 ```bash
 kubeadm reset -f
 systemctl stop kubelet
@@ -127,5 +127,38 @@ systemctl daemon-reload
 sudo systemctl start containerd
 ```
 
+### test your kubernetes node
+```bash
+  mkdir -p $HOME/.kube
+  cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+  chown $(id -u):$(id -g) $HOME/.kube/config
+  kubectl get nodes --output=wide
+```
+
+### install helm and cilium
+
+https://docs.cilium.io/en/latest/installation/k8s-install-kubeadm/#installation-using-kubeadm
+
+```bash
+  wget https://get.helm.sh/helm-v3.18.2-linux-amd64.tar.gz
+  tar xvfz helm-v3.18.2-linux-amd64.tar.gz 
+  rsync -av linux-amd64/helm  /usr/local/bin/
+  curl -LO https://github.com/cilium/cilium/archive/main.tar.gz
+  tar xzf main.tar.gz
+  cd cilium-main/install/kubernetes/
+  helm install cilium ./cilium --namespace kube-system
+  CILIUM_CLI_VERSION=$(curl -s https://raw.githubusercontent.com/cilium/cilium-cli/main/stable.txt)
+  CLI_ARCH=amd64
+  if [ "$(uname -m)" = "aarch64" ]; then CLI_ARCH=arm64; fi
+  curl -L --fail --remote-name-all https://github.com/cilium/cilium-cli/releases/download/${CILIUM_CLI_VERSION}/cilium-linux-${CLI_ARCH}.tar.gz{,.sha256sum}
+  sha256sum --check cilium-linux-${CLI_ARCH}.tar.gz.sha256sum
+  sudo tar xzvfC cilium-linux-${CLI_ARCH}.tar.gz /usr/local/bin
+  rm cilium-linux-${CLI_ARCH}.tar.gz{,.sha256sum}
+  cd
+  git clone https://github.com/cilium/cilium.git
+  cd cilium
+  cilium status --wait
+  kubectl get nodes --output=wide
+```
 
 
