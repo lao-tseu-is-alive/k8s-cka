@@ -29,54 +29,58 @@ i did my install on an Ubuntu 24.04 LTR
 ### 2. Disable Swap
 Kubernetes officially requires swap to be disabled for optimal performance and stability.
 
+```bash
   swapoff -a
   sed -i '/ swap / s/^/#/' /etc/fstab
 
 ### 3. Install and configure  a Container Runtime : containerd
 Kubernetes uses a container runtime to run containers. Containerd is the recommended runtime.
-  
+
+```bash  
   apt install -y containerd
+```
 
 ##### 3.b) Generate a default containerd configuration file:
 
+```bash
   mkdir -p /etc/containerd
   containerd config default | sudo tee /etc/containerd/config.toml
-
+```
 ##### 3.c) Enable systemd as the cgroup driver for containerd. This is crucial for compatibility with kubelet.
-
+```bash
   sed -i 's/SystemdCgroup = false/SystemdCgroup = true/' /etc/containerd/config.toml
-
+```
 ##### 3.d) Restart and Enable Containerd:
-
+```bash
   systemctl restart containerd
   systemctl status containerd.service 
   systemctl enable containerd
-
+```
 ### 4. Configure Kernel Modules and Sysctl Parameters  
 Kubernetes needs specific kernel modules and sysctl parameters to be enabled for networking.
 
 ##### 4.a) Load Kernel Modules:
-  
+```bash  
   modprobe overlay
   modprobe br_netfilter
   tee /etc/modules-load.d/k8s.conf <<EOF
   overlay
   br_netfilter
   EOF
-  
+```  
 ##### 4.b) Configure Sysctl Parameters:
 Create a Kubernetes configuration file for sysctl:
-  
+ ```bash 
   tee /etc/sysctl.d/k8s.conf <<EOF
   net.bridge.bridge-nf-call-iptables  = 1
   net.bridge.bridge-nf-call-ip6tables = 1
   net.ipv4.ip_forward   = 1
   EOF
-
+```
 Apply the changes:
-
+```bash
   sysctl --system
-
+```
 ### 5. Install kubelet, kubeadm, and kubectl
 These are the core Kubernetes components:
 
@@ -87,29 +91,32 @@ These are the core Kubernetes components:
  + kubectl: The command-line utility for interacting with your Kubernetes cluster.
 
 Add Kubernetes APT Repository:
-
+```bash
   apt install -y apt-transport-https ca-certificates curl gpg
   curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.33/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
    echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.33/deb/  /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
    apt update 
    apt install -y kubelet kubeadm kubectl
    apt-mark hold kubelet kubeadm kubectl
-
+```
 ### 6. kubeadm init 
-
+```bash
   kubeadm init
   systemctl status kubelet
   journalctl -xeu kubelet
-
+```
 
 ### in case you got an error with kubeadm init rest
-sudo kubeadm reset -f
-sudo systemctl stop kubelet
-sudo systemctl stop containerd
-sudo rm -rf /etc/cni/net.d
-sudo rm -rf /var/lib/kubelet/*
-sudo rm -rf /var/lib/containerd/*
-sudo systemctl daemon-reload
-sudo systemctl start containerd # Make sure containerd is running for the next init
+```bash
+kubeadm reset -f
+systemctl stop kubelet
+systemctl stop containerd
+rm -rf /etc/cni/net.d
+rm -rf /var/lib/kubelet/*
+rm -rf /var/lib/containerd/*
+systemctl daemon-reload
+sudo systemctl start containerd
+```
+
 
 
